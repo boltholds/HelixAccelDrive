@@ -9,3 +9,4 @@ reports/*.md
 *.h5ad
 *.code-workspace
 
+artifacts/
