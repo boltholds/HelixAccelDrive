@@ -34,7 +34,7 @@ def step_scale(adata: AnnData, config: PipelineConfig) -> AnnData:
 
 
 def step_pca(adata: AnnData, config: PipelineConfig) -> AnnData:
-    sc.tl.pca(adata, svd_solver="arpack", n_comps=config.n_pcs)
+    sc.tl.pca(adata, svd_solver="arpack", n_comps=config.n_pcs, random_state=config.random_state)
     return adata
 
 
@@ -49,7 +49,7 @@ def step_leiden(adata: AnnData, config: PipelineConfig) -> AnnData:
 
 
 def step_umap(adata: AnnData, config: PipelineConfig) -> AnnData:
-    sc.tl.umap(adata)
+    sc.tl.umap(adata, random_state=config.random_state)
     return adata
 
 

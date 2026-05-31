@@ -28,6 +28,14 @@ def render_markdown_report(record: RunRecord) -> str:
     lines.append(f"Total runtime: `{record.total_runtime_sec:.3f} sec`")
     lines.append("")
 
+    lines.append("## Pipeline parameters")
+    lines.append("")
+    lines.append("| Parameter | Value |")
+    lines.append("|---|---:|")
+    for key, value in record.pipeline_params.items():
+        lines.append(f"| `{key}` | `{value}` |")
+    lines.append("")
+
     lines.append("## Dataset profile")
     lines.append("")
     lines.append(f"- Cells: `{profile.get('n_cells')}`")
@@ -41,15 +49,20 @@ def render_markdown_report(record: RunRecord) -> str:
 
     lines.append("## Runtime by step")
     lines.append("")
-    lines.append("| Step | Runtime sec | Peak RAM MB | Matrix before | Matrix after | Success |")
-    lines.append("|---|---:|---:|---|---|---|")
+    lines.append(
+        "| Step | Runtime sec | RSS before MB | RSS after MB | ΔRSS MB | Peak RAM MB | Matrix before | Matrix after | Success |"
+    )
+    lines.append("|---|---:|---:|---:|---:|---:|---|---|---|")
     for step in record.steps:
         before = step["matrix_before"]
         after = step["matrix_after"]
         lines.append(
-            "| {name} | {runtime} | {ram} | {before_fmt} {before_shape} | {after_fmt} {after_shape} | {success} |".format(
+            "| {name} | {runtime} | {rss_before} | {rss_after} | {rss_delta} | {ram} | {before_fmt} {before_shape} | {after_fmt} {after_shape} | {success} |".format(
                 name=step["name"],
                 runtime=_fmt(step["runtime_sec"]),
+                rss_before=_fmt(step.get("rss_before_mb")),
+                rss_after=_fmt(step.get("rss_after_mb")),
+                rss_delta=_fmt(step.get("rss_delta_mb")),
                 ram=_fmt(step["peak_rss_mb"]),
                 before_fmt=before.get("matrix_format"),
                 before_shape=before.get("shape"),
@@ -76,6 +89,13 @@ def render_markdown_report(record: RunRecord) -> str:
     else:
         lines.append("No step memory data available.")
     lines.append("")
+
+    if record.artifact_paths:
+        lines.append("## Artifacts")
+        lines.append("")
+        for key, value in record.artifact_paths.items():
+            lines.append(f"- `{key}`: `{value}`")
+        lines.append("")
 
     lines.append("## Phase 1 note")
     lines.append("")

@@ -12,6 +12,7 @@ from helixaccel.config.settings import load_config
 from helixaccel.datasets.loaders import load_dataset
 from helixaccel.datasets.profiler import profile_adata
 from helixaccel.reports.markdown import save_markdown_report
+from helixaccel.storage.artifacts import save_run_artifacts
 from helixaccel.storage.json_store import save_run_record
 from helixaccel.storage.run_record import build_run_record
 
@@ -60,7 +61,7 @@ def run(
     success = True
     error = None
     try:
-        _, steps = backend_instance.run(adata, app_config.pipeline)
+        result_adata, steps = backend_instance.run(adata, app_config.pipeline)
     except Exception as exc:  # keep failed run record if possible
         success = False
         error = repr(exc)
@@ -68,15 +69,27 @@ def run(
         if not steps:
             raise
 
+    result_adata = locals().get("result_adata", adata)
     record = build_run_record(
         dataset=dataset,
         backend=backend,
         pipeline=app_config.pipeline.name,
+        pipeline_params=app_config.pipeline,
         dataset_profile=dataset_profile,
         steps=steps,
         success=success,
         error=error,
     )
+
+    if success:
+        record.artifact_paths = save_run_artifacts(
+            result_adata,
+            record.run_id,
+            app_config.storage.artifacts_dir,
+            save_h5ad=app_config.storage.save_h5ad,
+            save_clusters=app_config.storage.save_clusters,
+            save_markers=app_config.storage.save_markers,
+        )
 
     run_path = save_run_record(record, app_config.storage.runs_dir)
     report_path = save_markdown_report(record, app_config.storage.reports_dir)

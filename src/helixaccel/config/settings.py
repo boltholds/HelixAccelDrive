@@ -17,11 +17,16 @@ class PipelineConfig(BaseModel):
     n_neighbors: int = 15
     leiden_resolution: float = 1.0
     marker_method: str = "t-test"
+    random_state: int = 0
 
 
 class StorageConfig(BaseModel):
     runs_dir: Path = Path("runs")
     reports_dir: Path = Path("reports")
+    artifacts_dir: Path = Path("artifacts")
+    save_h5ad: bool = True
+    save_clusters: bool = True
+    save_markers: bool = True
 
 
 class HardwareConfig(BaseModel):
