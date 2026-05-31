@@ -1,8 +1,14 @@
+dataset:
+  name: pbmc68k
+  raw_path: data/raw/pbmc68k
+  cache_path: data/cache/pbmc68k_raw.h5ad
+  force_reload: false
+
 pipeline:
   name: canonical_scrna_v0
-  min_genes: 200
+  min_genes: 0
   min_cells: 3
-  target_sum: 10000
+  target_sum: 10000.0
   n_top_genes: 2000
   n_pcs: 50
   n_neighbors: 15
@@ -22,3 +28,8 @@ hardware:
   profile: local_cpu_with_rtx4070ti
   local_gpu_name: RTX 4070 Ti
   local_gpu_vram_gb: 12
+
+safety:
+  warn_dense_gb: 4.0
+  fail_dense_gb: 20.0
+  max_runtime_minutes: 120

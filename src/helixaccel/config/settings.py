@@ -7,6 +7,13 @@ import yaml
 from pydantic import BaseModel, Field
 
 
+class DatasetConfig(BaseModel):
+    name: str | None = None
+    raw_path: Path | None = None
+    cache_path: Path | None = None
+    force_reload: bool = False
+
+
 class PipelineConfig(BaseModel):
     name: str = "canonical_scrna_v0"
     min_genes: int = 200
@@ -35,10 +42,18 @@ class HardwareConfig(BaseModel):
     local_gpu_vram_gb: int | None = 12
 
 
+class SafetyConfig(BaseModel):
+    warn_dense_gb: float = 4.0
+    fail_dense_gb: float | None = 20.0
+    max_runtime_minutes: int | None = 120
+
+
 class AppConfig(BaseModel):
+    dataset: DatasetConfig = Field(default_factory=DatasetConfig)
     pipeline: PipelineConfig = Field(default_factory=PipelineConfig)
     storage: StorageConfig = Field(default_factory=StorageConfig)
     hardware: HardwareConfig = Field(default_factory=HardwareConfig)
+    safety: SafetyConfig = Field(default_factory=SafetyConfig)
 
 
 def load_config(path: str | Path | None) -> AppConfig:
