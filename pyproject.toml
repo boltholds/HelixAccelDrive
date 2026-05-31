@@ -1,0 +1,18 @@
+[project]
+name = "helixacceldrive"
+version = "0.1.0"
+description = "Benchmark-driven query planner for scRNA-seq pipeline"
+authors = [
+    {name = "bolthold",email = "anton.p@primitive.city"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+]
+
+[tool.poetry]
+packages = [{include = "helixacceldrive", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
