@@ -1,43 +1,48 @@
-# HelixAccelDrive
-Benchmark-driven query planner for scRNA-seq pipeline
+# HelixAccel Phase 1 — Reproducible Benchmark Skeleton
 
+This repository is the Phase 1 implementation slice for HelixAccel.
 
-Vision: query planner for biology.
-MVP: one scRNA-seq workflow, PBMC 68k, CPU + one GPU, validation gates, benchmark history, planner v0.
-Not a benchmark notebook.
-Not a full cloud optimizer.
-First executable slice of the planner
+Goal: build a reproducible measurement loop for a standard scRNA-seq Scanpy CPU pipeline before GPU optimization, planner logic, and biological validation gates are added.
 
+Phase 1 pipeline:
 
-Required execution:
-- local CPU
-- local RTX 4070 Ti
+```text
+load → QC/filtering → normalize → log1p → HVG → scale → PCA → KNN/neighbors → Leiden → UMAP → marker detection
+```
 
-Architecture support:
-- CPU
-- T4
-- A10G
-- A100
-- H100
+The first working target is PBMC 3k as a sanity/correctness benchmark. PBMC 68k is the next benchmark once this runner is stable.
 
+## Install
 
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
 
-Infrastructure assumptions for MVP
+GPU telemetry is optional:
 
-The first development and benchmark environment is a local workstation with NVIDIA RTX 4070 Ti 12 GB VRAM.
+```bash
+pip install -e ".[gpu,dev]"
+```
 
-The local GPU is used to build and validate the first execution loop:
-dataset profiling → Scanpy CPU baseline → RAPIDS GPU baseline → metrics collection → biological validation → planner v0 recommendation.
+## Commands
 
-The MVP architecture must include a hardware profile registry for future cloud tiers: CPU, T4, A10G, A100, H100.
+Profile dataset:
 
-However, the first executable MVP is not required to benchmark all hardware tiers. Real execution is limited to local CPU + local RTX 4070 Ti unless cloud access is provided.
+```bash
+helix profile --dataset pbmc3k
+```
 
-Cost model v1 is normalized compute-only estimate:
+Run Scanpy CPU baseline:
 
-cost = runtime_seconds × hardware_price_per_hour / 3600
+```bash
+helix run --dataset pbmc3k --backend scanpy-cpu --config configs/default.yaml
+```
 
-For local RTX 4070 Ti, price_per_hour is set to 0.00 for development runs. For future cloud estimates, initial reference prices can be stored for A10G/A100/H100 profiles and updated before real cloud benchmarking.
+Artifacts:
 
-The first investor/demo run can be performed locally. If stronger hardware is needed, the same runner should be portable to cloud GPU instances.
-
+```text
+runs/*.json       structured benchmark history
+reports/*.md      human-readable benchmark report
+```

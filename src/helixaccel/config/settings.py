@@ -1,0 +1,47 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+import yaml
+from pydantic import BaseModel, Field
+
+
+class PipelineConfig(BaseModel):
+    name: str = "canonical_scrna_v0"
+    min_genes: int = 200
+    min_cells: int = 3
+    target_sum: float = 10_000
+    n_top_genes: int = 2_000
+    n_pcs: int = 50
+    n_neighbors: int = 15
+    leiden_resolution: float = 1.0
+    marker_method: str = "t-test"
+
+
+class StorageConfig(BaseModel):
+    runs_dir: Path = Path("runs")
+    reports_dir: Path = Path("reports")
+
+
+class HardwareConfig(BaseModel):
+    profile: str = "local_cpu_with_rtx4070ti"
+    local_gpu_name: str | None = "RTX 4070 Ti"
+    local_gpu_vram_gb: int | None = 12
+
+
+class AppConfig(BaseModel):
+    pipeline: PipelineConfig = Field(default_factory=PipelineConfig)
+    storage: StorageConfig = Field(default_factory=StorageConfig)
+    hardware: HardwareConfig = Field(default_factory=HardwareConfig)
+
+
+def load_config(path: str | Path | None) -> AppConfig:
+    if path is None:
+        return AppConfig()
+    config_path = Path(path)
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config file not found: {config_path}")
+    with config_path.open("r", encoding="utf-8") as fh:
+        raw: dict[str, Any] = yaml.safe_load(fh) or {}
+    return AppConfig.model_validate(raw)

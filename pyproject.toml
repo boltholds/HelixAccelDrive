@@ -1,18 +1,52 @@
 [project]
-name = "helixacceldrive"
+name = "helixaccel"
 version = "0.1.0"
 description = "Benchmark-driven query planner for scRNA-seq pipeline"
 authors = [
     {name = "bolthold",email = "anton.p@primitive.city"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<4.0.0"
 dependencies = [
+    "scanpy (>=1.12.1,<2.0.0)",
+    "anndata (>=0.12.16,<0.13.0)",
+    "numpy (>=2.4.6,<3.0.0)",
+    "scipy (>=1.17.1,<2.0.0)",
+    "pandas (==2.3)",
+    "scikit-learn (>=1.8.0,<2.0.0)",
+    "psutil (>=7.2.2,<8.0.0)",
+    "typer (>=0.26.4,<0.27.0)",
+    "pydantic (>=2.13.4,<3.0.0)",
+    "pydantic-settings (>=2.14.1,<3.0.0)",
+    "rich (>=15.0.0,<16.0.0)",
+    "matplotlib (>=3.10.9,<4.0.0)",
+    "python-igraph (>=1.0.0,<2.0.0)",
+    "leidenalg (>=0.12.0,<0.13.0)",
+    "pyyaml (>=6.0.3,<7.0.0)"
 ]
 
 [tool.poetry]
-packages = [{include = "helixacceldrive", from = "src"}]
+packages = [{include = "helixaccel", from = "src"}]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+gpu = [
+    "pynvml (>=13.0.1,<14.0.0)"
+]
+dev = [
+    "pytest (>=9.0.3,<10.0.0)",
+    "ruff (>=0.15.15,<0.16.0)",
+    "mypy (>=2.1.0,<3.0.0)",
+    "black (>=26.5.1,<27.0.0)",
+    "flake8 (>=7.3.0,<8.0.0)",
+    "pytest-coverage (>=0.0,<0.1)",
+    "pytest-asyncio (>=1.4.0,<2.0.0)",
+    "cohesion (>=1.2.0,<2.0.0)"
+]
+
+
+[tool.poetry.scripts]
+helix = "helixaccel.cli:app"

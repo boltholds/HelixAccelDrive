@@ -1,0 +1,19 @@
+pipeline:
+  name: canonical_scrna_v0
+  min_genes: 200
+  min_cells: 3
+  target_sum: 10000
+  n_top_genes: 2000
+  n_pcs: 50
+  n_neighbors: 15
+  leiden_resolution: 1.0
+  marker_method: t-test
+
+storage:
+  runs_dir: runs
+  reports_dir: reports
+
+hardware:
+  profile: local_cpu_with_rtx4070ti
+  local_gpu_name: RTX 4070 Ti
+  local_gpu_vram_gb: 12
