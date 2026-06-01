@@ -1,0 +1,11 @@
+Using version ^14.1.0 for cupy-cuda12x
+
+Updating dependencies
+Resolving dependencies...
+
+Package operations: 2 installs, 0 updates, 0 removals
+
+  - Installing cuda-pathfinder (1.5.5)
+  - Installing cupy-cuda12x (14.1.0)
+
+Writing lock file

@@ -6,7 +6,7 @@ authors = [
     {name = "bolthold",email = "anton.p@primitive.city"}
 ]
 readme = "README.md"
-requires-python = ">=3.13,<4.0.0"
+requires-python = "<3.14,>=3.12"
 dependencies = [
     "scanpy (>=1.12.1,<2.0.0)",
     "anndata (>=0.12.16,<0.13.0)",
@@ -34,7 +34,9 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 gpu = [
-    "pynvml (>=13.0.1,<14.0.0)"
+    "pynvml (>=13.0.1,<14.0.0)",
+    "rapids-singlecell (==0.13.0)",
+    "cupy-cuda12x (>=14.1.0,<15.0.0)"
 ]
 dev = [
     "pytest (>=9.0.3,<10.0.0)",

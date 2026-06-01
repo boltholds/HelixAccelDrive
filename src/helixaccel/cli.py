@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Optional
+import json
 
 import typer
 from rich.console import Console
@@ -16,7 +17,7 @@ from helixaccel.storage.artifacts import save_run_artifacts
 from helixaccel.storage.json_store import save_run_record
 from helixaccel.storage.run_record import build_run_record
 
-app = typer.Typer(help="HelixAccel Phase 2 benchmark CLI")
+app = typer.Typer(help="HelixAccel Phase 3 CPU/RAPIDS benchmark CLI")
 console = Console()
 
 
@@ -141,3 +142,82 @@ def run(
     console.print(f"Total runtime: {record.total_runtime_sec:.3f} sec")
     console.print(f"Run record: {run_path}")
     console.print(f"Report: {report_path}")
+
+
+@app.command()
+def compare(
+    baseline: str = typer.Option(..., "--baseline", help="Path to CPU baseline run JSON"),
+    candidate: str = typer.Option(..., "--candidate", help="Path to GPU/candidate run JSON"),
+    output: Optional[str] = typer.Option(None, "--output", "-o", help="Optional Markdown output path"),
+) -> None:
+    """Generate a preliminary CPU vs candidate runtime comparison table."""
+    baseline_path = Path(baseline)
+    candidate_path = Path(candidate)
+    base = json.loads(baseline_path.read_text(encoding="utf-8"))
+    cand = json.loads(candidate_path.read_text(encoding="utf-8"))
+
+    def by_name(record: dict) -> dict[str, dict]:
+        return {step["name"]: step for step in record.get("steps", [])}
+
+    base_steps = by_name(base)
+    cand_steps = by_name(cand)
+
+    name_map = {
+        "scale": "rapids_scale",
+        "pca": "rapids_pca",
+        "neighbors": "rapids_neighbors",
+        "leiden": "rapids_leiden",
+        "umap": "rapids_umap",
+        "marker_detection": "marker_detection",
+    }
+
+    lines: list[str] = []
+    lines.append(f"# HelixAccel Preliminary Comparison")
+    lines.append("")
+    lines.append(f"Baseline: `{base.get('run_id')}` / `{base.get('backend')}`")
+    lines.append(f"Candidate: `{cand.get('run_id')}` / `{cand.get('backend')}`")
+    lines.append("")
+    lines.append("| CPU step | Candidate step | CPU sec | Candidate sec | Speedup | CPU peak RAM MB | Candidate peak RAM MB | Candidate peak VRAM MB |")
+    lines.append("|---|---|---:|---:|---:|---:|---:|---:|")
+
+    for cpu_name, gpu_name in name_map.items():
+        cpu = base_steps.get(cpu_name)
+        gpu = cand_steps.get(gpu_name)
+        if not cpu or not gpu:
+            continue
+        cpu_sec = float(cpu.get("runtime_sec", 0.0))
+        gpu_sec = float(gpu.get("runtime_sec", 0.0))
+        speedup = cpu_sec / gpu_sec if gpu_sec > 0 else 0.0
+        lines.append(
+            "| `{}` | `{}` | {:.3f} | {:.3f} | {:.2f}x | {:.3f} | {:.3f} | {} |".format(
+                cpu_name,
+                gpu_name,
+                cpu_sec,
+                gpu_sec,
+                speedup,
+                float(cpu.get("peak_rss_mb", 0.0)),
+                float(gpu.get("peak_rss_mb", 0.0)),
+                "-" if gpu.get("peak_vram_mb") is None else f"{float(gpu.get('peak_vram_mb')):.3f}",
+            )
+        )
+
+    lines.append("")
+    lines.append("## Totals")
+    lines.append("")
+    base_total = float(base.get("total_runtime_sec", 0.0))
+    cand_total = float(cand.get("total_runtime_sec", 0.0))
+    total_speedup = base_total / cand_total if cand_total > 0 else 0.0
+    lines.append(f"- Baseline total: `{base_total:.3f} sec`")
+    lines.append(f"- Candidate total: `{cand_total:.3f} sec`")
+    lines.append(f"- Total speedup: `{total_speedup:.2f}x`")
+    lines.append("")
+    lines.append("Biological validation is not included in this comparison. Use Phase 4 for ARI/NMI, marker overlap, and cluster drift.")
+
+    text = "\n".join(lines)
+    if output:
+        out_path = Path(output)
+    else:
+        out_path = Path("reports") / f"compare_{base.get('run_id')}_vs_{cand.get('run_id')}.md"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(text, encoding="utf-8")
+    console.print(f"Comparison report: {out_path}")

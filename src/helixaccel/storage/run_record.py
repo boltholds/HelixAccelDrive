@@ -31,6 +31,29 @@ class RunRecord(BaseModel):
     notes: list[str] = Field(default_factory=list)
 
 
+def collect_software_info() -> dict[str, Any]:
+    software: dict[str, Any] = {"scanpy": sc.__version__}
+    try:
+        import anndata as ad  # type: ignore
+
+        software["anndata"] = ad.__version__
+    except Exception:
+        pass
+    try:
+        import rapids_singlecell as rsc  # type: ignore
+
+        software["rapids_singlecell"] = getattr(rsc, "__version__", "unknown")
+    except Exception:
+        pass
+    try:
+        import cupy as cp  # type: ignore
+
+        software["cupy"] = cp.__version__
+    except Exception:
+        pass
+    return software
+
+
 def build_run_record(
     dataset: str,
     backend: str,
@@ -53,7 +76,7 @@ def build_run_record(
         pipeline_params=pipeline_params.model_dump(mode="json"),
         dataset_profile=dataset_profile.to_dict(),
         hardware=collect_hardware_info(),
-        software={"scanpy": sc.__version__},
+        software=collect_software_info(),
         artifact_paths=artifact_paths or {},
         steps=[step.to_dict() for step in steps],
         total_runtime_sec=round(sum(step.runtime_sec for step in steps), 6),

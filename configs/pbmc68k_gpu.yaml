@@ -1,0 +1,44 @@
+dataset:
+  name: pbmc68k
+  raw_path: data/raw/pbmc68k
+  cache_path: data/cache/pbmc68k_raw.h5ad
+  force_reload: false
+
+pipeline:
+  name: canonical_scrna_v0
+  min_genes: 0
+  min_cells: 3
+  target_sum: 10000.0
+  n_top_genes: 2000
+  n_pcs: 50
+  n_neighbors: 15
+  leiden_resolution: 1.0
+  marker_method: t-test
+  random_state: 0
+
+hardware:
+  profile: local_rtx4070ti
+  local_gpu_name: RTX 4070 Ti
+  local_gpu_vram_gb: 12
+
+# Phase 3 notes:
+# Real execution target is local RTX 4070 Ti.
+# Recommended environment: WSL2/Linux + conda/mamba + RAPIDS-compatible Python/CUDA stack.
+gpu:
+  device: 0
+  memory_limit_gb: 12
+  record_transfer_steps: true
+  fallback_to_cpu: false
+
+storage:
+  runs_dir: runs
+  reports_dir: reports
+  artifacts_dir: artifacts
+  save_h5ad: true
+  save_clusters: true
+  save_markers: true
+
+safety:
+  warn_dense_gb: 4.0
+  fail_dense_gb: 20.0
+  max_runtime_minutes: 120
